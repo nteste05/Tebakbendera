@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tebak 100 Bendera Dunia</title>
+    <!-- Import Library Flag Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .game-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 450px; }
+        
+        /* Container untuk Bendera CSS */
+        .flag-container { font-size: 120px; margin-bottom: 1.5rem; display: block; }
+        .fi { border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        .hint-box { min-height: 70px; margin-bottom: 1.5rem; background: #fff9e6; padding: 15px; border-radius: 12px; border-left: 5px solid #f39c12; }
+        .hint-text { color: #555; font-size: 0.95rem; font-style: italic; line-height: 1.5; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { padding: 15px; font-size: 1rem; cursor: pointer; border: 2px solid #3498db; border-radius: 12px; background: white; color: #3498db; font-weight: bold; transition: 0.2s; }
+        button:hover:not(:disabled) { background: #3498db; color: white; }
+        button:disabled { cursor: default; }
+        #feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; height: 1.5em; }
+        #next-btn { display: none; width: 100%; padding: 15px; background: #2ecc71; border: none; color: white; border-radius: 12px; font-size: 1.1rem; cursor: pointer; }
+        .progress { font-size: 0.8rem; color: #999; margin-bottom: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="game-card">
+    <div class="progress">PROGRES: <span id="current-q">1</span> / 100</div>
+    
+    <!-- Area Bendera menggunakan SPAN class fi -->
+    <div class="flag-container">
+        <span id="flag-icon" class="fi"></span>
+    </div>
+
+    <div class="hint-box">
+        <div class="hint-text" id="hint-text"></div>
+    </div>
+
+    <div class="options">
+        <button onclick="checkAnswer(this)" id="opt0"></button>
+        <button onclick="checkAnswer(this)" id="opt1"></button>
+    </div>
+
+    <div id="feedback"></div>
+    <button id="next-btn" onclick="nextQuestion()">Lanjut &raquo;</button>
+    <div style="margin-top:20px; font-weight: bold;">Skor: <span id="score">0</span></div>
+</div>
+
+<script>
+    // Data 100 Negara (Contoh 20 pertama, struktur sama hingga 100)
+    const countries = [
+        {name: "Indonesia", code: "id", hint: "Negara kepulauan terbesar di dunia."},
+        {name: "Amerika Serikat", code: "us", hint: "Negeri Paman Sam dengan 50 negara bagian."},
+        {name: "Jepang", code: "jp", hint: "Negeri Matahari Terbit dan asal anime."},
+        {name: "Brasil", code: "br", hint: "Terkenal dengan hutan Amazon dan sepak bola."},
+        {name: "Prancis", code: "fr", hint: "Negara romantis dengan Menara Eiffel."},
+        {name: "Inggris", code: "gb", hint: "Rumah bagi keluarga kerajaan dan Big Ben."},
+        {name: "Korea Selatan", code: "kr", hint: "Pusat K-Pop dan drama Korea."},
+        {name: "Arab Saudi", code: "sa", hint: "Penghasil minyak terbesar dan rumah bagi Ka'bah."},
+        {name: "Australia", code: "au", hint: "Negara benua yang penuh dengan Kanguru."},
+        {name: "Mesir", code: "eg", hint: "Negeri para Firaun dan Piramida."},
+        {name: "Jerman", code: "de", hint: "Terkenal dengan teknologi mesin dan sosis."},
+        {name: "Italia", code: "it", hint: "Negara asal Pizza, Pasta, dan Colosseum."},
+        {name: "Kanada", code: "ca", hint: "Memiliki simbol daun maple di benderanya."},
+        {name: "India", code: "in", hint: "Negara demokrasi terbesar dan rumah Taj Mahal."},
+        {name: "Tiongkok", code: "cn", hint: "Negara dengan Tembok Besar yang ikonik."},
+        {name: "Rusia", code: "ru", hint: "Negara dengan wilayah terluas di dunia."},
+        {name: "Turki", code: "tr", hint: "Negara yang menghubungkan Asia dan Eropa."},
+        {name: "Meksiko", code: "mx", hint: "Terkenal dengan Taco dan peradaban Maya."},
+        {name: "Belanda", code: "nl", hint: "Negeri kincir angin dan bunga tulip."},
+        {name: "Thailand", code: "th", hint: "Satu-satunya negara ASEAN yang tak pernah dijajah."},
+        
+        { name: "Argentina", code: "ar", hint: "Negeri asal tarian Tango dan Lionel Messi." },
+        { name: "Vietnam", code: "vn", hint: "Terkenal dengan Teluk Ha Long dan kopi yang kuat." },
+        { name: "Singapura", code: "sg", hint: "Negara kota modern dengan patung Merlion." },
+        { name: "Malaysia", code: "my", hint: "Tetangga dekat Indonesia dengan Menara Petronas." },
+        { name: "Filipina", code: "ph", hint: "Negara kepulauan dengan transportasi Jeepney." },
+        { name: "Swiss", code: "ch", hint: "Terkenal dengan jam tangan, cokelat, dan pegunungan Alpen." },
+        { name: "Spanyol", code: "es", hint: "Negeri Matador dan tarian Flamenco." },
+        { name: "Portugal", code: "pt", hint: "Negara asal penjelajah Vasco da Gama dan Cristiano Ronaldo." },
+        { name: "Yunani", code: "gr", hint: "Tempat lahirnya Olimpiade dan filsafat barat." },
+        { name: "Selandia Baru", code: "nz", hint: "Lokasi syuting Lord of the Rings, dihuni burung Kiwi." },
+        { name: "Afrika Selatan", code: "za", hint: "Negara pelangi yang pernah dipimpin Nelson Mandela." },
+        { name: "Norwegia", code: "no", hint: "Negeri para Viking dan pemandangan Fjord." },
+        { name: "Swedia", code: "se", hint: "Asal perabot IKEA dan grup musik ABBA." },
+        { name: "Finlandia", code: "fi", hint: "Dikenal sebagai negara paling bahagia di dunia." },
+        { name: "Denmark", code: "dk", hint: "Negara asal mainan blok LEGO." },
+        { name: "Belgia", code: "be", hint: "Pusat Uni Eropa, terkenal dengan wafel dan cokelat." },
+        { name: "Polandia", code: "pl", hint: "Negara asal ilmuwan Marie Curie dan komposer Chopin." },
+        { name: "Ukraina", code: "ua", hint: "Lumbung pangan Eropa dengan bunga matahari sebagai simbol." },
+        { name: "Austria", code: "at", hint: "Negara pegunungan tempat lahirnya musisi Mozart." },
+        { name: "Hungaria", code: "hu", hint: "Memiliki ibu kota Budapest yang dibelah sungai Danube." },
+        { name: "Rumania", code: "ro", hint: "Rumah bagi kastil Drakula di Transylvania." },
+        { name: "Irlandia", code: "ie", hint: "Dijuluki sebagai Pulau Zamrud karena alamnya yang hijau." },
+        { name: "Maroko", code: "ma", hint: "Negara Afrika Utara dengan kota biru Chefchaouen." },
+        { name: "Mesir", code: "eg", hint: "Memiliki satu-satunya tujuh keajaiban dunia kuno yang masih berdiri." },
+        { name: "Kenya", code: "ke", hint: "Terkenal dengan safari liar dan pelari maraton hebat." },
+        { name: "Nigeria", code: "ng", hint: "Negara dengan populasi terbesar di benua Afrika." },
+        { name: "Pakistan", code: "pk", hint: "Negara di Asia Selatan yang memiliki gunung K2." },
+        { name: "Iran", code: "ir", hint: "Dahulu dikenal sebagai Kekaisaran Persia." },
+        { name: "Irak", code: "iq", hint: "Lokasi kuno peradaban Mesopotamia (Babilonia)." },
+        { name: "Israel", code: "il", hint: "Negara dengan teknologi canggih dan Laut Mati." },
+        { name: "Yordania", code: "jo", hint: "Memiliki kota kuno Petra yang dipahat di tebing." },
+        { name: "Uni Emirat Arab", code: "ae", hint: "Rumah bagi gedung tertinggi di dunia, Burj Khalifa." },
+        { name: "Qatar", code: "qa", hint: "Negara kaya yang menjadi tuan rumah Piala Dunia 2022." },
+        { name: "Kuwait", code: "kw", hint: "Negara Teluk dengan mata uang terkuat di dunia." },
+        { name: "Mongolia", code: "mn", hint: "Negeri para penunggang kuda dan Jenghis Khan." },
+        { name: "Kazakhstan", code: "kz", hint: "Negara terkurung daratan terbesar di dunia." },
+        { name: "Uzbekistan", code: "uz", hint: "Pusat Jalur Sutra dengan kota kuno Samarkand." },
+        { name: "Nepal", code: "np", hint: "Memiliki bendera unik berbentuk dua segitiga." },
+        { name: "Sri Lanka", code: "lk", hint: "Pulau berbentuk tetesan air mata di Samudra Hindia." },
+        { name: "Bangladesh", code: "bd", hint: "Negara delta sungai besar dengan populasi sangat padat." },
+        { name: "Myanmar", code: "mm", hint: "Negeri Seribu Pagoda di Asia Tenggara." },
+        { name: "Kamboja", code: "kh", hint: "Rumah bagi kompleks candi Angkor Wat." },
+        { name: "Laos", code: "la", hint: "Satu-satunya negara di Asia Tenggara yang tidak punya laut." },
+        { name: "Brunei Darussalam", code: "bn", hint: "Negara kecil yang kaya akan minyak di pulau Kalimantan." },
+        { name: "Kolombia", code: "co", hint: "Penghasil kopi terbaik dan legenda El Dorado." },
+        { name: "Peru", code: "pe", hint: "Rumah bagi situs kuno Inka, Machu Picchu." },
+        { name: "Chile", code: "cl", hint: "Negara terpanjang dan paling ramping di dunia." },
+        { name: "Venezuela", code: "ve", hint: "Memiliki air terjun tertinggi di dunia, Angel Falls." },
+        { name: "Uruguay", code: "uy", hint: "Negara pemenang Piala Dunia FIFA pertama kali." },
+        { name: "Ekuador", code: "ec", hint: "Terletak tepat di garis khatulistiwa Bumi." },
+        { name: "Bolivia", code: "bo", hint: "Memiliki dataran garam terbesar di dunia, Salar de Uyuni." },
+        { name: "Kuba", code: "cu", hint: "Terkenal dengan cerutu, musik, dan mobil klasik." },
+        { name: "Jamaika", code: "jm", hint: "Negara asal musik Reggae dan Bob Marley." },
+        { name: "Kosta Rika", code: "cr", hint: "Negara tanpa tentara dan surga ekowisata." },
+        { name: "Panama", code: "pa", hint: "Memiliki terusan yang membelah Benua Amerika." },
+        { name: "Islandia", code: "is", hint: "Negeri es dan api dengan banyak gunung berapi aktif." },
+        { name: "Kroasia", code: "hr", hint: "Terkenal dengan pantai indah dan kostum catur merah-putih." },
+        { name: "Republik Ceko", code: "cz", hint: "Ibu kotanya, Praha, dijuluki Kota Seribu Menara." },
+        { name: "Slowakia", code: "sk", hint: "Pecahan dari Cekoslowakia yang kaya akan pegunungan." },
+        { name: "Slovenia", code: "si", hint: "Negara hijau dengan Danau Bled yang sangat indah." },
+        { name: "Bulgaria", code: "bg", hint: "Penghasil minyak bunga mawar terbesar di dunia." },
+        { name: "Serbia", code: "rs", hint: "Negara asal ilmuwan jenius Nikola Tesla." },
+        { name: "Estonia", code: "ee", hint: "Negara paling digital di dunia, tempat lahir Skype." },
+        { name: "Latvia", code: "lv", hint: "Negara Baltik dengan salah satu hutan terluas di Eropa." },
+        { name: "Lituania", code: "lt", hint: "Memiliki bahasa yang dianggap paling tua di Eropa." },
+        { name: "Aljazair", code: "dz", hint: "Negara terbesar di benua Afrika secara luas wilayah." },
+        { name: "Etiopia", code: "et", hint: "Satu-satunya negara Afrika yang tidak pernah dijajah bangsa Eropa." },
+        { name: "Ghana", code: "gh", hint: "Penghasil kakao terbesar kedua di dunia." },
+        { name: "Tanzania", code: "tz", hint: "Rumah bagi Gunung Kilimanjaro dan pulau Zanzibar." },
+        { name: "Madagaskar", code: "mg", hint: "Pulau besar dengan pohon Baobab dan hewan Lemur." },
+        { name: "Uganda", code: "ug", hint: "Dijuluki Mutiara Afrika karena keindahan alamnya." },
+        { name: "Senegal", code: "sn", hint: "Dikenal dengan Danau Pink (Lac Rose) yang airnya berwarna merah muda." },
+        { name: "Mali", code: "ml", hint: "Negara gurun tempat berdirinya kota kuno Timbuktu." },
+        { name: "Lebanon", code: "lb", hint: "Terkenal dengan pohon Cedar yang ada di benderanya." },
+        { name: "Azerbaijan", code: "az", hint: "Dijuluki sebagai Negeri Api karena sumber gas alamnya." },
+        { name: "Georgia", code: "ge", hint: "Negara di pegunungan Kaukasus, tempat asal minuman anggur tertua." },
+        { name: "Armenia", code: "am", hint: "Negara pertama di dunia yang mengadopsi Kristen sebagai agama resmi." },
+        { name: "Malta", code: "mt", hint: "Negara kepulauan kecil di tengah Laut Mediterania." },
+        { name: "Siprus", code: "cy", hint: "Pulau yang benderanya memiliki gambar peta negaranya sendiri." },
+        { name: "Fiji", code: "fj", hint: "Negara kepulauan di Pasifik, surga bagi penyelam." }
+
+        // Tambahkan sisa negara hingga 100 di sini dengan pola yang sama
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let gameData = [];
+
+    function init() {
+        gameData = [...countries].sort(() => Math.random() - 0.5);
+        render();
+    }
+
+    function render() {
+        const item = gameData[currentIdx];
+        const flagEl = document.getElementById('flag-icon');
+        
+        // Reset class dan tambahkan yang baru
+        flagEl.className = `fi fi-${item.code}`;
+        
+        document.getElementById('current-q').innerText = currentIdx + 1;
+        document.getElementById('hint-text').innerText = `"${item.hint}"`;
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+
+        // Ambil opsi salah secara acak
+        let wrong;
+        do { wrong = countries[Math.floor(Math.random() * countries.length)]; } 
+        while (wrong.name === item.name);
+
+        const opts = [item.name, wrong.name].sort(() => Math.random() - 0.5);
+        document.getElementById('opt0').innerText = opts[0];
+        document.getElementById('opt1').innerText = opts[1];
+        
+        document.querySelectorAll('.options button').forEach(b => {
+            b.disabled = false;
+            b.style.background = "white";
+            b.style.color = "#3498db";
+            b.style.borderColor = "#3498db";
+        });
+    }
+
+    function checkAnswer(btn) {
+        const correct = gameData[currentIdx].name;
+        const feedback = document.getElementById('feedback');
+        document.querySelectorAll('.options button').forEach(b => b.disabled = true);
+        
+        if (btn.innerText === correct) {
+            score++;
+            btn.style.background = "#2ecc71";
+            btn.style.color = "white";
+            btn.style.borderColor = "#2ecc71";
+            feedback.innerText = "Benar! ✨";
+            feedback.style.color = "#2ecc71";
+        } else {
+            btn.style.background = "#e74c3c";
+            btn.style.color = "white";
+            btn.style.borderColor = "#e74c3c";
+            feedback.innerText = `Salah! Itu adalah ${correct}.`;
+            feedback.style.color = "#e74c3c";
+        }
+        
+        document.getElementById('score').innerText = score;
+        document.getElementById('next-btn').style.display = "block";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < gameData.length) {
+            render();
+        } else {
+            alert(`Permainan Selesai! Skor akhir: ${score}/${gameData.length}`);
+            location.reload();
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
