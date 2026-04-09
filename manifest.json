@@ -1,0 +1,11 @@
+{
+    "name": "Tebakbendera: Game Tebak Nama Bendera",
+    "short_name": "Tebakbendera",
+    "description": "Mainkan Tebakbendera gratis! Game tebak nama bendera dunia online. Uji wawasan geografi Anda langsung di browser.",
+    "icons": "tebakbendera-favicon.jpg",
+    "theme_color": "#2D2D2D",
+    "background_color": "#2D2D2D",
+    "display": "standalone",
+    "start_url": "./index.html",
+    "orientation": "portrait"
+}
