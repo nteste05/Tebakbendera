@@ -31,14 +31,29 @@
     <!-- Import Library Flag Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css" />
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .game-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 450px; }
+    :root { 
+            --dark: #1a1a1a; --accent: #ffc107;
+        body { font-family: 'Inter', sans-serif; background: #f4f7f6; display: flex; flex-direction:column; min-height: 100vh; margin: 0; }
+        .game-card { background: white; padding: 1.5rem; text-align: center; width: 100%; max-width: 450px; box-sizing: border-box;}
         
         /* Container untuk Bendera CSS */
-        .flag-container { font-size: 120px; margin-bottom: 1.5rem; display: block; }
+        .main-container {
+            flex: 1; /* Mengisi ruang sisa agar footer tetap di bawah */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .flag-container { font-size: 120px; margin-bottom: 1.5rem;}
         .fi { border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* Desktop Size */
+        @media (min-width: 768px) {
+            .flag-container { font-size: 140px; }
+            .game-card { padding: 2rem; }
+        }
 
-        .hint-box { min-height: 70px; margin-bottom: 1.5rem; background: #fff9e6; padding: 15px; border-radius: 12px; border-left: 5px solid #f39c12; }
+        .hint-box { min-height: 60px; margin-bottom: 1.5rem; background: #fff9e6; padding: 15px; border-radius: 12px; border-left: 5px solid #f39c12; }
         .hint-text { color: #555; font-size: 0.95rem; font-style: italic; line-height: 1.5; }
         .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         button { padding: 15px; font-size: 1rem; cursor: pointer; border: 2px solid #3498db; border-radius: 12px; background: white; color: #3498db; font-weight: bold; transition: 0.2s; }
@@ -47,10 +62,126 @@
         #feedback { margin: 15px 0; font-weight: bold; font-size: 1.1rem; height: 1.5em; }
         #next-btn { display: none; width: 100%; padding: 15px; background: #2ecc71; border: none; color: white; border-radius: 12px; font-size: 1.1rem; cursor: pointer; }
         .progress { font-size: 0.8rem; color: #999; margin-bottom: 10px; font-weight: bold; }
+        
+        /* --- NAVIGATION & SIDEBAR --- */
+        .navbar {
+            background-color: var(--dark);
+            color: white;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            margin: 0px 20px;
+        }
+
+        header h1 {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 2000;
+            top: 0;
+            left: 0;
+            background-color: var(--dark);
+            overflow-x: hidden;
+            transition: 0.3s;
+            padding-top: 10px;
+        }
+
+        .sidebar a {
+            padding: 15px 30px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            color: #ccc;
+            display: block;
+            transition: 0.2s;
+            border-bottom: 1px solid #333;
+        }
+
+        .sidebar a:hover {
+            color: var(--accent);
+            background-color: #222;
+        }
+
+        .sidebar .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 36px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .overlaynav {
+            display: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1500;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 10px 10px;
+            background: var(--dark);
+            color: #888;
+            font-size: 0.9rem;
+            width: 100%;
+            position: relative;
+        }
+        
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+        
     </style>
 </head>
 <body>
+    <!-- Sidebar Menu -->
+    <div id="mySidebar" class="sidebar">
+        <span class="close-btn" onclick="closeNav()">&times;</span>
+        <a href="https://nteste05.github.io/gemii/" onclick="closeNav()">🎲 Game Lainnya</a>
+    </div>
+    <!-- Overlay Background -->
+    <div id="overlaynav" class="overlaynav" onclick="closeNav()">
+    </div>
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <button class="menu-btn" onclick="openNav()">&#9776;</button>
+        <header><h1>Tebak Bendera</h1>
+        </header>
+        <p class="visually-hidden">Tebakbendera: Game Edukasi Seru untuk Menjadi Ahli Geografi Dunia!<br><br>Apakah Anda merasa cukup pintar untuk mengenali semua bendera di dunia?<br><strong>Tebakbendera</strong>adalah game trivia edukasi terbaru yang dirancang khusus untuk menguji wawasan geografi Anda dengan cara yang sangat menyenangkan dan interaktif. Dari bendera negara-negara besar yang ikonik hingga wilayah terpencil yang jarang terdengar, game ini akan membawa Anda berkeliling dunia hanya melalui layar ponsel Anda.</p>
+        <p class="visually-hidden">Belajar geografi seringkali terasa membosankan jika hanya dilakukan melalui buku teks.<strong>Game Tebak Bendera</strong> hadir sebagai solusi cerdas untuk belajar sambil bermain. Game ini tidak hanya cocok untuk anak-anak yang sedang belajar di sekolah, tetapi juga bagi orang dewasa yang ingin mengasah kembali ingatan dan memperluas pengetahuan umum mereka.<br><br>Dengan tampilan antarmuka yang bersih, minimalis, dan responsif, pengalaman bermain Anda akan terasa sangat lancar. Setiap gambar bendera disajikan dengan resolusi tinggi, memastikan setiap detail warna, simbol, dan rasio bendera terlihat jelas untuk membantu Anda memberikan jawaban yang tepat.</p>
+        <p class="visually-hidden">Bermain game trivia seperti <strong>Permainan Tebak Bendera</strong> memiliki banyak manfaat kognitif. Selain meningkatkan daya ingat visual, Anda juga akan belajar mengenal budaya dan identitas berbagai bangsa melalui simbol-simbol yang ada pada bendera mereka. Ini adalah cara terbaik untuk melatih otak agar tetap tajam dan responsif.</p>
+    </nav>
 
+<div class="main-container">
 <div class="game-card">
     <div class="progress">PROGRES: <span id="current-q">1</span> / 100</div>
     
@@ -71,6 +202,7 @@
     <div id="feedback"></div>
     <button id="next-btn" onclick="nextQuestion()">Lanjut &raquo;</button>
     <div style="margin-top:20px; font-weight: bold;">Skor: <span id="score">0</span></div>
+</div>
 </div>
 
 <script>
@@ -178,7 +310,6 @@
         { name: "Siprus", code: "cy", hint: "Pulau yang benderanya memiliki gambar peta negaranya sendiri." },
         { name: "Fiji", code: "fj", hint: "Negara kepulauan di Pasifik, surga bagi penyelam." }
 
-        // Tambahkan sisa negara hingga 100 di sini dengan pola yang sama
     ];
 
     let currentIdx = 0;
@@ -249,12 +380,47 @@
             render();
         } else {
             alert(`Permainan Selesai! Skor akhir: ${score}/${gameData.length}`);
+            openRandomTab();
             location.reload();
         }
     }
 
     init();
+    
+    const sidebar = document.getElementById("mySidebar");
+        const overlaynav = document.getElementById("overlaynav");
+        
+        function openNav() {
+            sidebar.style.width = "280px";
+            overlaynav.style.display = "block";
+            // Mencegah scroll pada body saat menu buka
+            document.body.style.overflow = "hidden";
+        }
+        
+        function closeNav() {
+            sidebar.style.width = "0";
+            overlaynav.style.display = "none";
+            // Mengembalikan scroll body
+            document.body.style.overflow = "auto";
+        }
+        
+        const urlList = [
+            "https://www.google.com/search?q=tebak+bendera+nteste05.github.io",
+            "https://www.google.com/search?q=game+tebak+bendera+nteste05.github.io",
+            "https://www.google.com/search?q=permainan+tebak+bendera+nteste05.github.io"
+        ];
+        
+        function openRandomTab() {
+            const randomIndex = Math.floor(Math.random() * urlList.length);
+            const randomURL = urlList[randomIndex];
+            window.open(randomURL, '_blank');
+        }
+    
 </script>
-
+<footer>
+        <p>&copy; 2026 <a style="color: inherit; text-decoration: none;" href="https://nteste05.github.io/Tebakbendera">Game Tebak Bendera.</a> <br> 
+        <small>Konten ini hanya untuk tujuan hiburan dan edukasi.</small>
+        </p>
+    </footer>
 </body>
 </html>
